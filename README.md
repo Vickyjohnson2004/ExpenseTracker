@@ -1,19 +1,58 @@
-# 💰 Expense Tracker App
+# 💰 Track Expense – Full Stack Expense Tracker
 
-A full-stack Expense Tracker application that helps users manage their income and expenses efficiently. Users can add, edit, delete, and track transactions with a clean and intuitive dashboard.
+A full-stack Expense Tracker application that allows users to manage income and expenses with authentication, a dashboard, and persistent storage.
 
 ---
 
-## 🚀 Features
+## 🚀 Overview
 
-* 🔐 User Authentication (Login & Signup)
-* 📊 Dashboard overview of transactions
-* ➕ Add new transactions (income/expense)
-* ✏️ Edit existing transactions
-* ❌ Delete transactions
-* 💾 Persistent storage (localStorage / backend API)
-* 🔄 Auto-refresh transaction list
-* 📱 Responsive UI
+This project is structured as a **monorepo** containing:
+
+* 🔧 **Backend** → Node.js + Express API
+* 🎨 **Frontend** → React (Vite) application
+
+Users can:
+
+* Sign up / log in
+* Add, edit, and delete transactions
+* View their financial activity on a dashboard
+
+---
+
+## 📁 Project Structure
+
+```bash
+TRACK_EXPENSE/
+│
+├── backend/
+│   ├── src/
+│   │   ├── config/
+│   │   ├── controllers/
+│   │   ├── middleware/
+│   │   ├── models/
+│   │   ├── routes/
+│   │   └── utils/
+│   ├── server.js
+│   ├── package.json
+│
+├── frontend/
+│   ├── public/
+│   ├── src/
+│   │   ├── assets/
+│   │   ├── components/
+│   │   │   ├── Layout.jsx
+│   │   │   ├── Login.jsx
+│   │   │   ├── Navbar.jsx
+│   │   │   ├── Sidebar.jsx
+│   │   │   └── Signup.jsx
+│   │   ├── pages/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── index.html
+│   ├── package.json
+│
+└── README.md
+```
 
 ---
 
@@ -21,162 +60,150 @@ A full-stack Expense Tracker application that helps users manage their income an
 
 ### Frontend
 
-* React (with Hooks)
-* React Router DOM
+* React (Vite)
+* React Router
 * Axios
 * Tailwind CSS
 
-### Backend (if connected)
+### Backend
 
 * Node.js
 * Express.js
 * REST API
-
----
-
-## 📁 Project Structure
-
-```
-src/
-│
-├── components/
-│   ├── Layout.jsx
-│   ├── Login.jsx
-│   ├── Signup.jsx
-│
-├── pages/
-│   └── Dashboard.jsx
-│
-├── App.jsx
-└── main.jsx
-```
+* JWT Authentication
 
 ---
 
 ## 🔐 Authentication Flow
 
-1. User logs in or signs up
-2. Token is stored in:
-
-   * `localStorage` (if "Remember me" is checked)
-   * `sessionStorage` (default)
-3. Protected routes verify:
-
-   * User exists
-   * Token is valid
-4. Unauthorized users are redirected to `/login`
-
----
-
-## 🔄 App Flow
-
-```
-App Load
-  ↓
-Check Stored Token
-  ↓
-Validate User (API or Storage)
-  ↓
-Load Transactions
-  ↓
-Render Dashboard
+```text
+User Login/Signup
+   ↓
+Backend validates credentials
+   ↓
+JWT Token issued
+   ↓
+Token stored (localStorage/sessionStorage)
+   ↓
+Protected routes verify access
 ```
 
 ---
 
-## ⚙️ Installation & Setup
+## 🔄 Application Flow
+
+```text
+App Start
+  ↓
+Check stored token
+  ↓
+Fetch user (/api/user/me)
+  ↓
+Load transactions
+  ↓
+Render dashboard
+```
+
+---
+
+## ⚙️ Getting Started
 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/expense-tracker.git
-cd expense-tracker
+git clone https://github.com/your-username/track-expense.git
+cd track-expense
 ```
 
 ---
 
-### 2. Install dependencies
+## 🔧 Backend Setup
 
 ```bash
+cd backend
 npm install
-```
-
----
-
-### 3. Run the app
-
-```bash
 npm run dev
 ```
 
----
-
-### 4. Backend (optional)
-
-Make sure your backend is running at:
+Server runs on:
 
 ```
 http://localhost:4000
 ```
 
-And exposes:
+---
+
+## 🎨 Frontend Setup
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+Frontend runs on:
 
 ```
-GET /api/user/me
-POST /api/auth/login
-POST /api/auth/signup
+http://localhost:5173
+```
+
+---
+
+## 🔌 API Endpoints (Example)
+
+```http
+POST   /api/auth/signup
+POST   /api/auth/login
+GET    /api/user/me
 ```
 
 ---
 
 ## 📦 Environment Variables
 
-Create a `.env` file:
+Create a `.env` file inside **backend/**:
 
+```env
+PORT=4000
+JWT_SECRET=your_secret_key
 ```
+
+Frontend (optional):
+
+```env
 VITE_API_URL=http://localhost:4000
 ```
 
 ---
 
-## 🛠️ Key Functionalities
+## 🛠️ Features
 
-### Add Transaction
-
-* Adds new income/expense
-* Updates UI instantly
-
-### Edit Transaction
-
-* Modify existing transaction
-* Keeps state consistent
-
-### Delete Transaction
-
-* Removes transaction permanently
-
-### Persist Data
-
-* Saves transactions to localStorage
-* Reload-safe
+* 🔐 Authentication (Login / Signup)
+* 📊 Dashboard UI
+* ➕ Add transactions
+* ✏️ Edit transactions
+* ❌ Delete transactions
+* 💾 Persistent storage
+* 🔄 State synchronization
 
 ---
 
 ## ⚠️ Known Limitations
 
-* Uses localStorage (not fully secure)
-* No server-side validation (if backend is missing)
-* No pagination for large datasets
+* Uses localStorage/sessionStorage for tokens (not fully secure)
+* No refresh token system
+* Limited validation on frontend
 
 ---
 
 ## 🚀 Future Improvements
 
-* 🔐 Switch to HTTP-only cookies for auth
-* 📊 Add charts (analytics dashboard)
-* ☁️ Cloud database (MongoDB/PostgreSQL)
-* 🔄 Real-time updates (WebSockets)
-* 📈 Expense insights with AI
+* 🔐 Move to HTTP-only cookies (secure auth)
+* 📊 Add analytics (charts & insights)
+* ☁️ Connect to cloud database (MongoDB / PostgreSQL)
+* 🔄 Real-time updates
+* 📱 Mobile optimization
+* 🤖 AI-powered expense insights
 
 ---
 
@@ -184,16 +211,16 @@ VITE_API_URL=http://localhost:4000
 
 Contributions are welcome!
 
-1. Fork the repo
-2. Create a feature branch
+1. Fork the project
+2. Create your feature branch
 3. Commit your changes
-4. Open a pull request
+4. Push and open a PR
 
 ---
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+MIT License
 
 ---
 
@@ -205,4 +232,4 @@ Built by **Victor Johnson**
 
 ## ⭐ Support
 
-If you like this project, give it a ⭐ on GitHub!
+If you found this helpful, give the repo a ⭐ on GitHub!
