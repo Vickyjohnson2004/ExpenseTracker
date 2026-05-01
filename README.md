@@ -262,8 +262,6 @@ Built by **Victor Johnson**
 
 ## ⭐ Support
 
-
-
 ---
 
 ### ➕ Add Transaction
@@ -271,20 +269,4 @@ Built by **Victor Johnson**
 ![Add Transaction Screenshot](./frontend/public/screenshots/add-transaction.png)
 
 ---
-
-## 🧠 Tech Stack
-
-**Frontend**
-
-* React (Vite)
-* React Router
-* Axios
-* Tailwind CSS
-
-**Backend**
-
-* Node.js
-* Express.js
-* JWT Authentication
-
---you found this helpful, give the repo a ⭐ on GitHub!
+you found this helpful, give the repo a ⭐ on GitHub!
