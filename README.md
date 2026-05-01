@@ -232,4 +232,102 @@ Built by **Victor Johnson**
 
 ## ⭐ Support
 
+
+
+
+---
+# 💰 Track Expense – Full Stack Expense Tracker
+
+![License](https://img.shields.io/badge/license-MIT-green)
+![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Build](https://img.shields.io/badge/build-passing-brightgreen)
+
+A full-stack Expense Tracker application with authentication, dashboard, and transaction management.
+
+---
+
+## 🌐 Live Demo
+
+🚀 **Frontend:** https://your-frontend-url.vercel.app
+🔧 **Backend API:** https://your-backend-url.onrender.com
+
+> ⚠️ Replace these with your actual deployed links
+
+---
+
+## 📸 Screenshots
+
+### 🔐 Login Page
+
+![Login Screenshot](./frontend/public/screenshots/login.png)
+
+---
+
+### 📊 Dashboard
+
+![Dashboard Screenshot](./frontend/public/screenshots/dashboard.png)
+
+---
+
+### ➕ Add Transaction
+
+![Add Transaction Screenshot](./frontend/public/screenshots/add-transaction.png)
+
+---
+
+## 🧠 Tech Stack
+
+**Frontend**
+
+* React (Vite)
+* React Router
+* Axios
+* Tailwind CSS
+
+**Backend**
+
+* Node.js
+* Express.js
+* JWT Authentication
+
+---
+
+## 📁 Project Structure
+
+```bash
+backend/
+frontend/
+```
+
+---
+
+## ⚙️ Setup
+
+### Backend
+
+```bash
+cd backend
+npm install
+npm run dev
+```
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+## 🚀 Features
+
+* 🔐 Auth system (Login / Signup)
+* 📊 Dashboard
+* ➕ Add transactions
+* ✏️ Edit transactions
+* ❌ Delete transactions
+* 💾 Persistent storage
+
+
+
 If you found this helpful, give the repo a ⭐ on GitHub!
