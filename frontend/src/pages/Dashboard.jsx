@@ -12,6 +12,7 @@ import {
 } from "../assets/color.jsx";
 import { useEffect, useMemo, useState } from "react";
 import { useOutletContext } from "react-router-dom";
+import AddTransactionModal from "../components/Add.jsx";
 import axios from "axios";
 import {
   ArrowDown,
@@ -764,6 +765,15 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+
+      <AddTransactionModal
+        showModal={showModal}
+        setShowModal={setShowModal}
+        newTransaction={newTransaction}
+        setNewTransaction={setNewTransaction}
+        handleAddTranscation={handleAddTranscation}
+        loading={loading}
+      />
     </div>
   );
 };
