@@ -7,7 +7,7 @@ import {
 } from "react-router-dom";
 import Layout from "./components/Layout";
 import Dashboard from "./pages/Dashboard";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import axios from "axios";
@@ -19,14 +19,11 @@ const getTransactionsFromStorage = () => {
   return saved ? JSON.parse(saved) : [];
 };
 
-const ProtectedRoute = ({ user, isLoading, children }) => {
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
+const ProtectedRoute = ({ user, children }) => {
+  const localToken = localStorage.getItem("token");
+  const sessionToken = sessionStorage.getItem("token");
+  const token = localToken || sessionToken;
 
-  // If we are still loading the user from storage/API, show nothing or a spinner
-  if (isLoading) return null;
-
-  // Only redirect if loading is finished and we definitely have no user/token
   if (!user || !token) {
     return <Navigate to="/login" replace />;
   }
@@ -34,10 +31,10 @@ const ProtectedRoute = ({ user, isLoading, children }) => {
 };
 
 const ScrollToTop = () => {
-  const { pathname } = useLocation();
+  const location = useLocation();
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto", left: 0 });
-  }, [pathname]);
+  }, [location.pathname]);
   return null;
 };
 
@@ -48,29 +45,35 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  const persistAuth = useCallback((userObj, tokenStr, remember = false) => {
+  const persistAuth = (userObj, tokenStr, remember = false) => {
     try {
-      const storage = remember ? localStorage : sessionStorage;
-      const otherStorage = remember ? sessionStorage : localStorage;
-
-      if (userObj) storage.setItem("user", JSON.stringify(userObj));
-      if (tokenStr) storage.setItem("token", tokenStr);
-
-      otherStorage.removeItem("user");
-      otherStorage.removeItem("token");
-
+      if (remember) {
+        if (userObj) localStorage.setItem("user", JSON.stringify(userObj));
+        if (tokenStr) localStorage.setItem("token", tokenStr);
+        sessionStorage.removeItem("user");
+        sessionStorage.removeItem("token");
+      } else {
+        if (userObj) sessionStorage.setItem("user", JSON.stringify(userObj));
+        if (tokenStr) sessionStorage.setItem("token", tokenStr);
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
+      }
       setUser(userObj || null);
       setToken(tokenStr || null);
     } catch (err) {
       console.error("persistAuth error:", err);
     }
-  }, []);
+  };
 
   const clearAuth = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    sessionStorage.removeItem("token");
-    sessionStorage.removeItem("user");
+    try {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+    } catch (err) {
+      console.error("clearauth Error:", err);
+    }
     setUser(null);
     setToken(null);
   };
@@ -82,16 +85,19 @@ const App = () => {
 
   const updateUserData = (updatedUser) => {
     setUser(updatedUser);
-    if (localStorage.getItem("token")) {
+    const localToken = localStorage.getItem("token");
+    const sessionToken = sessionStorage.getItem("token");
+
+    if (localToken) {
       localStorage.setItem("user", JSON.stringify(updatedUser));
-    } else {
+    } else if (sessionToken) {
       sessionStorage.setItem("user", JSON.stringify(updatedUser));
     }
   };
 
-  // --- FIX: The IIFE (Immediately Invoked Function Expression) ---
+  // --- FIXED: Added () at the end of the async function to execute it ---
   useEffect(() => {
-    const initAuth = async () => {
+    (async () => {
       try {
         const localUserRaw = localStorage.getItem("user");
         const sessionUserRaw = sessionStorage.getItem("user");
@@ -103,59 +109,64 @@ const App = () => {
           : sessionUserRaw
             ? JSON.parse(sessionUserRaw)
             : null;
-        const storedToken = localToken || sessionToken;
-        const isPersistent = !!localToken;
+
+        const storedToken = localToken || sessionToken || null;
+        const tokenFromLocal = !!localToken;
 
         if (storedToken) {
-          // Set initial local state so UI updates immediately
+          // Set initial state from storage immediately
           setUser(storedUser);
           setToken(storedToken);
 
-          // Optional: Verify token with backend
+          // Verify/Refresh profile from server
           try {
             const res = await axios.get(`${API_URL}/api/user/me`, {
               headers: { Authorization: `Bearer ${storedToken}` },
             });
-            persistAuth(res.data, storedToken, isPersistent);
+            persistAuth(res.data, storedToken, tokenFromLocal);
           } catch (fetchErr) {
-            console.error("Session expired or invalid:", fetchErr);
-            // clearAuth(); // Uncomment if you want to force logout on failed verify
+            console.error("could not fetch user data:", fetchErr);
+            // Optional: clearAuth() if status is 401
           }
         }
       } catch (error) {
-        console.error("Initialization error:", error);
+        console.error("Initialization Error:", error);
       } finally {
-        setTransactions(getTransactionsFromStorage());
         setIsLoading(false);
+        setTransactions(getTransactionsFromStorage());
       }
-    };
-
-    initAuth();
-  }, [persistAuth]);
+    })();
+  }, []);
 
   useEffect(() => {
-    if (!isLoading) {
+    try {
       localStorage.setItem("transactions", JSON.stringify(transactions));
+    } catch (err) {
+      console.error("error saving transactions: ", err);
     }
-  }, [transactions, isLoading]);
+  }, [transactions]);
 
-  const handleLogin = (userData, remember, tokenFromApi) => {
+  const handleLogin = (userData, remember = false, tokenFromApi = null) => {
     persistAuth(userData, tokenFromApi, remember);
     navigate("/");
   };
 
-  const handleSignup = (userData, remember, tokenFromApi) => {
+  const handleSignup = (userData, remember = false, tokenFromApi = null) => {
     persistAuth(userData, tokenFromApi, remember);
     navigate("/");
   };
 
-  const addTransaction = (newTx) => setTransactions((p) => [newTx, ...p]);
-  const editTransaction = (id, updated) =>
+  const addTransaction = (newTransaction) =>
+    setTransactions((p) => [newTransaction, ...p]);
+
+  const editTransaction = (id, updatedTransaction) =>
     setTransactions((p) =>
-      p.map((t) => (t.id === id ? { ...updated, id } : t)),
+      p.map((t) => (t.id === id ? { ...updatedTransaction, id } : t)),
     );
+
   const deleteTransaction = (id) =>
     setTransactions((p) => p.filter((t) => t.id !== id));
+
   const refreshTransactions = () =>
     setTransactions(getTransactionsFromStorage());
 
@@ -179,7 +190,7 @@ const App = () => {
 
         <Route
           element={
-            <ProtectedRoute user={user} isLoading={isLoading}>
+            <ProtectedRoute user={user}>
               <Layout
                 user={user}
                 onLogout={handleLogout}
@@ -192,7 +203,18 @@ const App = () => {
             </ProtectedRoute>
           }
         >
-          <Route path="/" element={<Dashboard />} />
+          <Route
+            path="/"
+            element={
+              <Dashboard
+                transactions={transactions}
+                addTransaction={addTransaction}
+                editTransaction={editTransaction}
+                deleteTransaction={deleteTransaction}
+                refreshTransactions={refreshTransactions}
+              />
+            }
+          />
         </Route>
       </Routes>
     </>
