@@ -1,4 +1,3 @@
-// import React from "react";
 import { Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import { loginStyles } from "../assets/dummyStyles.js";
 import { useState } from "react";
@@ -15,17 +14,13 @@ const Login = ({ onLogin, API_URL = "http://localhost:4000" }) => {
 
   const navigate = useNavigate();
 
-  // to fetch profile
   const fetchProfile = async (token) => {
     if (!token) return null;
     try {
-      const res = await fetch(`${API_URL}/api/user/me`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const res = await axios.get(`${API_URL}/api/user/me`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
-      const data = await res.json();
-      return data;
+      return res.data;
     } catch (err) {
       console.error("Error fetching user:", err);
       return null;
@@ -42,73 +37,48 @@ const Login = ({ onLogin, API_URL = "http://localhost:4000" }) => {
     }
   };
 
-  // to handle login
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
-    setError(" ");
+    setError(null);
+
     try {
       const res = await axios.post(
         `${API_URL}/api/user/login`,
-        {
-          email,
-          password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        },
+        { email, password },
+        { headers: { "Content-Type": "application/json" } },
       );
-      const data = (await res.data) || {};
-      const token = data.token || null;
 
-      // to derive user profile
-      let profile = data.user || (token ? await fetchProfile(token) : null);
-      if (!profile) {
-        const copy = { ...data };
-        delete copy.token;
-        delete copy.user;
+      const data = res.data || {};
+      const token = data.token;
 
-        if (Object.keys(copy).length) {
-          profile = copy;
-        }
-
-        if (!profile && token) {
-          try {
-            profile = await fetchProfile(token);
-          } catch (error) {
-            console.error("Error fetching profile after login:", error);
-            profile = { email };
-          }
-        }
-
-        if (!profile) profile = { email };
-
-        persistAuth(profile, token);
-
-        if (typeof onLogin === "function") {
-          try {
-            onLogin(profile, rememberMe, token);
-          } catch (error) {
-            console.warn("onLogin callback error:", error);
-            navigate("/");
-          }
-        } else {
-          navigate("/");
-        }
-
-        setPassword(""); // Clear password after login
+      if (!token) {
+        throw new Error("No token received from server");
       }
+
+      // 1. Get profile (from response or fetch it)
+      let profile = data.user || (await fetchProfile(token));
+
+      if (!profile) {
+        profile = { email }; // Fallback
+      }
+
+      // 2. Persist to storage
       persistAuth(profile, token);
-      onLogin(profile, rememberMe, token);
+
+      // 3. Update App State
+      if (typeof onLogin === "function") {
+        onLogin(profile, rememberMe, token);
+      }
+
+      // 4. Redirect
+      navigate("/");
+      setPassword("");
     } catch (err) {
-      console.error("Login error:", err?.err || err.message || err);
+      console.error("Login error:", err);
       const serverMsg =
         err?.response?.data?.message ||
-        (err.response?.data ? JSON.stringify(err.response?.data) : null) ||
-        err?.message ||
-        "Login failed. Please try again.";
+        "Login failed. Please check your credentials.";
       setError(serverMsg);
     } finally {
       setIsLoading(false);
@@ -149,7 +119,6 @@ const Login = ({ onLogin, API_URL = "http://localhost:4000" }) => {
             </div>
           )}
 
-          {/* Login Form handleSubmit */}
           <form onSubmit={handleLogin}>
             <div className="mb-6">
               <label htmlFor="email" className={loginStyles.label}>
@@ -180,7 +149,7 @@ const Login = ({ onLogin, API_URL = "http://localhost:4000" }) => {
                   <Lock className="w-5 h-5" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"} // FIXED: Dynamic type
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -220,33 +189,7 @@ const Login = ({ onLogin, API_URL = "http://localhost:4000" }) => {
               disabled={isLoading}
               className={`${loginStyles.button} ${isLoading ? loginStyles.buttonDisabled : ""}`}
             >
-              {isLoading ? (
-                <>
-                  <svg
-                    className={loginStyles.spinner}
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    />
-                  </svg>
-                  Signing in...
-                </>
-              ) : (
-                "Sign In"
-              )}
+              {isLoading ? "Signing in..." : "Sign In"}
             </button>
           </form>
 
