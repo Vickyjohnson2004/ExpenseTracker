@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import Login from "./components/Login";
 import Signup from "./components/Signup";
 import axios from "axios";
+import Income from "./pages/Income";
 
 const API_URL = "http://localhost:4000";
 
@@ -207,6 +208,19 @@ const App = () => {
             path="/"
             element={
               <Dashboard
+                transactions={transactions}
+                addTransaction={addTransaction}
+                editTransaction={editTransaction}
+                deleteTransaction={deleteTransaction}
+                refreshTransactions={refreshTransactions}
+              />
+            }
+          />
+
+          <Route
+            path="/income"
+            element={
+              <Income
                 transactions={transactions}
                 addTransaction={addTransaction}
                 editTransaction={editTransaction}
