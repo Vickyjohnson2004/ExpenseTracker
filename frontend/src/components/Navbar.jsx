@@ -1,13 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { navbarStyles } from "../assets/dummyStyles.js";
 import img1 from "../assets/logo.png";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import { ChevronDown, LogOut, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:4000/api";
-
-const Navbar = ({ user: propUser, onlogout }) => {
+const Navbar = ({ user: propUser, onLogout }) => {
   const navigate = useNavigate();
   const menuRef = useRef();
   const [MenuOpen, setMenuOpen] = useState(false);
@@ -16,32 +13,6 @@ const Navbar = ({ user: propUser, onlogout }) => {
     name: "",
     email: "",
   };
-
-  // to fetch user data from the server
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const token =
-          localStorage.getItem("token") || sessionStorage.getItem("token");
-        if (!token) return;
-
-        const response = await axios.get(`${BASE_URL}/user/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        const userData = response.data || response.data.user;
-        setUser(userData);
-      } catch (error) {
-        console.error("Failed to fetch profile:", error);
-      }
-
-      if (!propUser) {
-        fetchUserData();
-      }
-    };
-  }, [propUser]);
 
   const toggleMenu = () => {
     setMenuOpen((prev) => !prev);
@@ -53,7 +24,7 @@ const Navbar = ({ user: propUser, onlogout }) => {
     localStorage.removeItem("user");
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("user");
-    onlogout && onlogout?.();
+    onLogout && onLogout();
     navigate("/login");
   };
 

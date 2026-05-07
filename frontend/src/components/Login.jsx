@@ -3,8 +3,9 @@ import { loginStyles } from "../assets/dummyStyles.js";
 import { useState } from "react";
 import axios from "axios";
 import { Link, useNavigate } from "react-router-dom";
+import { API_BASE } from "../utils/api";
 
-const Login = ({ onLogin, API_URL = "http://localhost:4000" }) => {
+const Login = ({ onLogin }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -17,7 +18,7 @@ const Login = ({ onLogin, API_URL = "http://localhost:4000" }) => {
   const fetchProfile = async (token) => {
     if (!token) return null;
     try {
-      const res = await axios.get(`${API_URL}/api/user/me`, {
+      const res = await axios.get(`${API_BASE}/user/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       return res.data;
@@ -44,7 +45,7 @@ const Login = ({ onLogin, API_URL = "http://localhost:4000" }) => {
 
     try {
       const res = await axios.post(
-        `${API_URL}/api/user/login`,
+        `${API_BASE}/user/login`,
         { email, password },
         { headers: { "Content-Type": "application/json" } },
       );

@@ -3,11 +3,18 @@ import validator from "validator";
 import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = "your_jwt_secret_here";
-const TOKEN_EXPIRES = "24h";
+const JWT_SECRET = process.env.JWT_SECRET;
+const TOKEN_EXPIRES = process.env.JWT_EXPIRES || "24h";
+
+const getJwtSecret = () => {
+  if (!JWT_SECRET) {
+    throw new Error("JWT_SECRET environment variable is required");
+  }
+  return JWT_SECRET;
+};
 
 const createToken = (userId) =>
-  jwt.sign({ id: userId }, JWT_SECRET, { expiresIn: TOKEN_EXPIRES });
+  jwt.sign({ id: userId }, getJwtSecret(), { expiresIn: TOKEN_EXPIRES });
 
 // REGISTER A USER
 
@@ -46,6 +53,9 @@ export async function registerUser(req, res) {
     const hashed = await bcryptjs.hash(password, 10);
     const user = await User.create({ name, email, password: hashed });
     const token = createToken(user._id);
+
+    res.setHeader("Authorization", `Bearer ${token}`);
+    res.setHeader("Access-Control-Expose-Headers", "Authorization");
 
     res.status(201).json({
       success: true,
@@ -92,10 +102,12 @@ export async function LoginUser(req, res) {
       });
     }
 
-    const Token = createToken(user._id);
+    const token = createToken(user._id);
+    res.setHeader("Authorization", `Bearer ${token}`);
+    res.setHeader("Access-Control-Expose-Headers", "Authorization");
     res.json({
       success: true,
-      Token,
+      token,
       user: {
         id: user._id,
         name: user.name,

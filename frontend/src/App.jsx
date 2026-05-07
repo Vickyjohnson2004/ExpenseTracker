@@ -12,71 +12,72 @@ import Login from "./components/Login";
 import Signup from "./components/Signup";
 import axios from "axios";
 import Income from "./pages/Income";
+import Expense from "./pages/Expense";
+import Profile from "./pages/Profile";
+import { API_BASE } from "./utils/api";
 
-const API_URL = "http://localhost:4000";
-
+/* ---------------- STORAGE ---------------- */
 const getTransactionsFromStorage = () => {
   const saved = localStorage.getItem("transactions");
   return saved ? JSON.parse(saved) : [];
 };
 
+/* ---------------- PROTECTED ROUTE ---------------- */
 const ProtectedRoute = ({ user, children }) => {
-  const localToken = localStorage.getItem("token");
-  const sessionToken = sessionStorage.getItem("token");
-  const token = localToken || sessionToken;
+  const token =
+    localStorage.getItem("token") || sessionStorage.getItem("token");
 
-  if (!user || !token) {
-    return <Navigate to="/login" replace />;
-  }
+  if (!token) return <Navigate to="/login" replace />;
+  if (!user) return null;
+
   return children;
 };
 
+/* ---------------- SCROLL ---------------- */
 const ScrollToTop = () => {
   const location = useLocation();
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto", left: 0 });
   }, [location.pathname]);
+
   return null;
 };
 
+/* ---------------- APP ---------------- */
 const App = () => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+
   const navigate = useNavigate();
 
+  /* ---------------- AUTH ---------------- */
   const persistAuth = (userObj, tokenStr, remember = false) => {
     try {
       if (remember) {
         if (userObj) localStorage.setItem("user", JSON.stringify(userObj));
         if (tokenStr) localStorage.setItem("token", tokenStr);
-        sessionStorage.removeItem("user");
-        sessionStorage.removeItem("token");
+        sessionStorage.clear();
       } else {
         if (userObj) sessionStorage.setItem("user", JSON.stringify(userObj));
         if (tokenStr) sessionStorage.setItem("token", tokenStr);
-        localStorage.removeItem("user");
-        localStorage.removeItem("token");
+        localStorage.clear();
       }
+
       setUser(userObj || null);
-      setToken(tokenStr || null);
     } catch (err) {
       console.error("persistAuth error:", err);
     }
   };
 
   const clearAuth = () => {
-    try {
-      localStorage.removeItem("token");
-      localStorage.removeItem("user");
-      sessionStorage.removeItem("token");
-      sessionStorage.removeItem("user");
-    } catch (err) {
-      console.error("clearauth Error:", err);
-    }
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    sessionStorage.removeItem("token");
+    sessionStorage.removeItem("user");
+
     setUser(null);
-    setToken(null);
   };
 
   const handleLogout = () => {
@@ -86,48 +87,47 @@ const App = () => {
 
   const updateUserData = (updatedUser) => {
     setUser(updatedUser);
-    const localToken = localStorage.getItem("token");
-    const sessionToken = sessionStorage.getItem("token");
 
-    if (localToken) {
+    const hasLocal = !!localStorage.getItem("token");
+
+    if (hasLocal) {
       localStorage.setItem("user", JSON.stringify(updatedUser));
-    } else if (sessionToken) {
+    } else {
       sessionStorage.setItem("user", JSON.stringify(updatedUser));
     }
   };
 
-  // --- FIXED: Added () at the end of the async function to execute it ---
+  /* ---------------- INIT AUTH ---------------- */
   useEffect(() => {
-    (async () => {
+    const initAuth = async () => {
       try {
-        const localUserRaw = localStorage.getItem("user");
-        const sessionUserRaw = sessionStorage.getItem("user");
-        const localToken = localStorage.getItem("token");
-        const sessionToken = sessionStorage.getItem("token");
+        const storedUser =
+          JSON.parse(localStorage.getItem("user")) ||
+          JSON.parse(sessionStorage.getItem("user"));
 
-        const storedUser = localUserRaw
-          ? JSON.parse(localUserRaw)
-          : sessionUserRaw
-            ? JSON.parse(sessionUserRaw)
-            : null;
+        const storedToken =
+          localStorage.getItem("token") || sessionStorage.getItem("token");
 
-        const storedToken = localToken || sessionToken || null;
-        const tokenFromLocal = !!localToken;
+        if (!storedToken) {
+          setIsLoading(false);
+          return;
+        }
 
-        if (storedToken) {
-          // Set initial state from storage immediately
-          setUser(storedUser);
-          setToken(storedToken);
+        setUser(storedUser);
 
-          // Verify/Refresh profile from server
-          try {
-            const res = await axios.get(`${API_URL}/api/user/me`, {
-              headers: { Authorization: `Bearer ${storedToken}` },
-            });
-            persistAuth(res.data, storedToken, tokenFromLocal);
-          } catch (fetchErr) {
-            console.error("could not fetch user data:", fetchErr);
-            // Optional: clearAuth() if status is 401
+        try {
+          const res = await axios.get(`${API_BASE}/user/me`, {
+            headers: {
+              Authorization: `Bearer ${storedToken}`,
+            },
+          });
+
+          setUser(res.data.user);
+        } catch (err) {
+          console.error("could not fetch user data:", err);
+
+          if (err?.response?.status === 401) {
+            clearAuth();
           }
         }
       } catch (error) {
@@ -136,15 +136,14 @@ const App = () => {
         setIsLoading(false);
         setTransactions(getTransactionsFromStorage());
       }
-    })();
-  }, []);
+    };
 
+    initAuth();
+  }, [navigate]); // ✅ FIXED dependency warning
+
+  /* ---------------- TRANSACTIONS ---------------- */
   useEffect(() => {
-    try {
-      localStorage.setItem("transactions", JSON.stringify(transactions));
-    } catch (err) {
-      console.error("error saving transactions: ", err);
-    }
+    localStorage.setItem("transactions", JSON.stringify(transactions));
   }, [transactions]);
 
   const handleLogin = (userData, remember = false, tokenFromApi = null) => {
@@ -157,12 +156,11 @@ const App = () => {
     navigate("/");
   };
 
-  const addTransaction = (newTransaction) =>
-    setTransactions((p) => [newTransaction, ...p]);
+  const addTransaction = (t) => setTransactions((p) => [t, ...p]);
 
-  const editTransaction = (id, updatedTransaction) =>
+  const editTransaction = (id, updated) =>
     setTransactions((p) =>
-      p.map((t) => (t.id === id ? { ...updatedTransaction, id } : t)),
+      p.map((t) => (t.id === id ? { ...updated, id } : t)),
     );
 
   const deleteTransaction = (id) =>
@@ -171,20 +169,20 @@ const App = () => {
   const refreshTransactions = () =>
     setTransactions(getTransactionsFromStorage());
 
+  /* ---------------- LOADING ---------------- */
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="flex flex-col items-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
+        <div className="animate-spin h-12 w-12 border-b-2 border-blue-500 rounded-full" />
       </div>
     );
   }
 
+  /* ---------------- UI ---------------- */
   return (
     <>
       <ScrollToTop />
+
       <Routes>
         <Route path="/login" element={<Login onLogin={handleLogin} />} />
         <Route path="/signup" element={<Signup onSignup={handleSignup} />} />
@@ -221,15 +219,42 @@ const App = () => {
             path="/income"
             element={
               <Income
-                transactions={transactions}
-                addTransaction={addTransaction}
-                editTransaction={editTransaction}
-                deleteTransaction={deleteTransaction}
-                refreshTransactions={refreshTransactions}
+                {...{
+                  transactions,
+                  addTransaction,
+                  editTransaction,
+                  deleteTransaction,
+                  refreshTransactions,
+                }}
               />
             }
           />
+
+          <Route
+            path="/expense"
+            element={
+              <Expense
+                {...{
+                  transactions,
+                  addTransaction,
+                  editTransaction,
+                  deleteTransaction,
+                  refreshTransactions,
+                }}
+              />
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={<Profile user={user} onUpdateProfile={updateUserData} />}
+          />
         </Route>
+
+        <Route
+          path="*"
+          element={<Navigate to={user ? "/" : "/login"} replace />}
+        />
       </Routes>
     </>
   );

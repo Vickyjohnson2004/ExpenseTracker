@@ -157,10 +157,10 @@ export async function getexpenseOverview(req, res) {
       })
       .sort({ date: -1 });
 
-    const totalExpense = expense.reduce((acc, cur) => acc + cur.amount, 0);
+    const totalExpense = expenses.reduce((acc, cur) => acc + cur.amount, 0);
     const averageExpense =
-      expense.length > 0 ? totalExpense / expense.length : 0;
-    const numberOfTransactions = expense.length;
+      expenses.length > 0 ? totalExpense / expenses.length : 0;
+    const numberOfTransactions = expenses.length;
 
     const recentTransactions = expenses.slice(0, 5);
 

@@ -8,10 +8,15 @@ import expenseRouter from "./src/routes/expenseRoutes.js";
 import dashboardRouter from "./src/routes/dashboardRoute.js";
 
 const app = express();
-const port = 4000;
+const port = Number(process.env.PORT) || 4000;
+
+const corsOptions = {
+  origin: process.env.CLIENT_URL || true,
+  credentials: true,
+};
 
 // MIDDLEWARES
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

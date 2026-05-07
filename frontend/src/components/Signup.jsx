@@ -3,8 +3,9 @@ import { signupStyles } from "../assets/dummyStyles";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { ArrowLeft, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
+import { API_BASE } from "../utils/api";
 
-const Signup = ({ API_URL = "http://localhost:4000", onSignup }) => {
+const Signup = ({ onSignup }) => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -18,13 +19,13 @@ const Signup = ({ API_URL = "http://localhost:4000", onSignup }) => {
   const fetchProfile = async (token) => {
     if (!token) return null;
     try {
-      const res = await fetch(`${API_URL}/api/user/me`, {
+      const res = await fetch(`${API_BASE}/user/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
       const data = await res.json();
-      return data;
+      return data?.user ?? null;
     } catch (err) {
       console.error("Error fetching user:", err);
       return null;
@@ -71,7 +72,7 @@ const Signup = ({ API_URL = "http://localhost:4000", onSignup }) => {
     setIsLoading(true);
     try {
       const res = await axios.post(
-        `${API_URL}/api/user/register`,
+        `${API_BASE}/user/register`,
         {
           name,
           email,

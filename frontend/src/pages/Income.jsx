@@ -30,8 +30,7 @@ import FinancialCard from "../components/FinancialCard";
 import { getTimeFrameRange, generateChartPoints } from "../components/Helpers";
 import { INCOME_COLORS, CATEGORY_ICONS_Inc } from "../assets/color";
 import { incomeStyles as styles } from "../assets/dummyStyles";
-
-const API_BASE = "http://localhost:4000/api";
+import { API_BASE, getAuthHeaders } from "../utils/api";
 
 function toIsoWithClientTime(dateValue) {
   if (!dateValue) {
@@ -48,6 +47,7 @@ function toIsoWithClientTime(dateValue) {
   try {
     return new Date(dateValue).toISOString();
   } catch (err) {
+    console.error(err.message || err);
     return new Date().toISOString();
   }
 }
@@ -199,10 +199,10 @@ const IncomePage = () => {
     date: new Date().toISOString().split("T")[0],
   });
 
-  const getAuthHeaders = useCallback(() => {
-    const token = localStorage.getItem("token");
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  }, []);
+  const getAuthHeadersMemo = useCallback(
+    () => getAuthHeaders(),
+    [getAuthHeaders],
+  );
 
   const timeFrameRange = useMemo(
     () => getTimeFrameRange(timeFrame, null),
@@ -284,7 +284,7 @@ const IncomePage = () => {
     async (range = timeFrame ?? "monthly") => {
       try {
         const res = await axios.get(`${API_BASE}/income/overview`, {
-          headers: getAuthHeaders(),
+          headers: getAuthHeadersMemo(),
           params: { range },
         });
 
@@ -306,8 +306,14 @@ const IncomePage = () => {
   );
 
   useEffect(() => {
-    fetchOverview(timeFrame ?? "monthly");
-  }, [fetchOverview, timeFrame]);
+    const range = timeFrame ?? "monthly";
+
+    const run = async () => {
+      await fetchOverview(range);
+    };
+
+    run();
+  }, [timeFrame, fetchOverview]);
 
   const totalIncome = useMemo(
     () =>
@@ -353,7 +359,10 @@ const IncomePage = () => {
       };
 
       await axios.post(`${API_BASE}/income/add`, payload, {
-        headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeadersMemo(),
+        },
       });
       await refreshTransactions();
       await fetchOverview(timeFrame ?? "monthly");
@@ -395,7 +404,10 @@ const IncomePage = () => {
       };
 
       await axios.put(`${API_BASE}/income/update/${editingId}`, payload, {
-        headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+        headers: {
+          "Content-Type": "application/json",
+          ...getAuthHeadersMemo(),
+        },
       });
 
       await refreshTransactions();
@@ -427,9 +439,8 @@ const IncomePage = () => {
       try {
         setLoading(true);
         await axios.delete(`${API_BASE}/income/delete/${id}`, {
-          headers: getAuthHeaders(),
+          headers: getAuthHeadersMemo(),
         });
-
         await refreshTransactions();
         await fetchOverview(timeFrame ?? "monthly");
       } catch (err) {
@@ -443,10 +454,11 @@ const IncomePage = () => {
     [getAuthHeaders, refreshTransactions, fetchOverview, timeFrame],
   );
 
+  // to download the excel sheet
   const handleExport = useCallback(async () => {
     try {
       const res = await axios.get(`${API_BASE}/income/downloadexcel`, {
-        headers: getAuthHeaders(),
+        headers: getAuthHeadersMemo(),
         responseType: "blob",
       });
 

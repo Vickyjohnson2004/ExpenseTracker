@@ -35,6 +35,7 @@ import {
   getPreviousTimeFrameRange,
   calculateData,
 } from "../components/Helpers.jsx";
+import { API_BASE, getAuthHeaders } from "../utils/api";
 import FinancialCard from "../components/FinancialCard.jsx";
 import GaugeCard from "../components/GaugeCard.jsx";
 import { Cell, Legend, Pie, ResponsiveContainer, Tooltip } from "recharts";
@@ -60,13 +61,7 @@ function toIsoWithClientTime(dateValue) {
 }
 
 const Dashboard = () => {
-  const API_URL = "http://localhost:4000";
-
-  const getAuthHeader = () => {
-    const token =
-      localStorage.getItem("token") || localStorage.getItem("authToken");
-    return token ? { Authorization: `Bearer ${token}` } : {};
-  };
+  const getAuthHeader = () => getAuthHeaders();
 
   const {
     transactions: outletTransactions = [],
@@ -270,7 +265,7 @@ const Dashboard = () => {
   // fetch the server-side data
   const fetchDashboardOverview = async () => {
     try {
-      const res = await fetch(`${API_URL}/dashboard`, {
+      const res = await fetch(`${API_BASE}/dashboard`, {
         headers: {
           "Content-Type": "application/json",
           ...getAuthHeader(),
@@ -364,7 +359,7 @@ const Dashboard = () => {
   }, []);
 
   // add/ edit or //delete
-  const handleAddTranscation = async () => {
+  const handleAddTransaction = async () => {
     if (!newTransaction.description || !newTransaction.amount) return;
 
     const payLoad = {
@@ -376,12 +371,12 @@ const Dashboard = () => {
 
     try {
       setLoading(true);
-      if (newTranscation.type === "income") {
-        await axios.post(`${API_URL}/income/add`, payLoad, {
+      if (newTransaction.type === "income") {
+        await axios.post(`${API_BASE}/income/add`, payLoad, {
           headers: getAuthHeader(),
         });
       } else {
-        await axios.post(`${API_URL}/expense/add`, payLoad, {
+        await axios.post(`${API_BASE}/expense/add`, payLoad, {
           headers: getAuthHeader(),
         });
       }
@@ -474,9 +469,9 @@ const Dashboard = () => {
               className={`mt-2 text-xs flex item-center gap-1 ${expenseChange >= 0 ? trendStyles.positive : trendStyles.negative}`}
             >
               {expenseChange >= 0 ? (
-                <TrendingUp w-4 h-4 />
+                <TrendingUp className="w-4 h-4" />
               ) : (
-                <TrendingDown w-4 h-4 />
+                <TrendingDown className="w-4 h-4" />
               )}
               <span>
                 {Math.abs(expenseChange)}%{" "}
@@ -771,7 +766,7 @@ const Dashboard = () => {
         setShowModal={setShowModal}
         newTransaction={newTransaction}
         setNewTransaction={setNewTransaction}
-        handleAddTranscation={handleAddTranscation}
+        handleAddTransaction={handleAddTransaction}
         loading={loading}
       />
     </div>

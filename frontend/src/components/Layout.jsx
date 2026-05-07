@@ -25,7 +25,7 @@ import {
 import axios from "axios";
 import { Outlet } from "react-router-dom";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL || "http://localhost:4000/api";
+import { API_BASE, getAuthHeaders } from "../utils/api";
 
 const CATEGORY_ICONS = {
   Food: <Utensils className="w-4 h-4" />,
@@ -72,7 +72,7 @@ const safeArrayFromResponse = (res) => {
   return [];
 };
 
-const Layout = ({ onlongout, user }) => {
+const Layout = ({ onLogout, user }) => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [timeFrame, setTimeFrame] = useState("monthly");
@@ -84,18 +84,18 @@ const Layout = ({ onlongout, user }) => {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const headers = getAuthHeaders();
 
       const [incomeRes, expenseRes] = await Promise.all([
-        axios.get(`${BASE_URL}/income/get`, { headers }),
-        axios.get(`${BASE_URL}/expense/get`, { headers }),
+        axios.get(`${API_BASE}/income/get`, { headers }),
+        axios.get(`${API_BASE}/expense/get`, { headers }),
       ]);
 
       const incomes = safeArrayFromResponse(incomeRes).map((i) => ({
         ...i,
         type: "income",
       }));
+
       const expenses = safeArrayFromResponse(expenseRes).map((e) => ({
         ...e,
         type: "expense",
@@ -128,11 +128,10 @@ const Layout = ({ onlongout, user }) => {
   // to add transcations either income or expense
   const addTransaction = async (transaction) => {
     try {
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const headers = getAuthHeaders();
       const endpoint =
         transaction.type === "income" ? "income/add" : "expense/add";
-      await axios.post(`${BASE_URL}/${endpoint}`, transaction, { headers });
+      await axios.post(`${API_BASE}/${endpoint}`, transaction, { headers });
       await fetchTransactions();
       return true;
     } catch (err) {
@@ -147,11 +146,10 @@ const Layout = ({ onlongout, user }) => {
   // to update transcation
   const editTransaction = async (id, transaction) => {
     try {
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const headers = getAuthHeaders();
       const endpoint =
         transaction.type === "income" ? "income/update" : "expense/update";
-      await axios.put(`${BASE_URL}/${endpoint}/${id}`, transaction, {
+      await axios.put(`${API_BASE}/${endpoint}/${id}`, transaction, {
         headers,
       });
       await fetchTransactions();
@@ -168,10 +166,9 @@ const Layout = ({ onlongout, user }) => {
   // to delete transaction
   const deleteTransaction = async (id, type) => {
     try {
-      const token = localStorage.getItem("token");
-      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      const headers = getAuthHeaders();
       const endpoint = type === "income" ? "income/delete" : "expense/delete";
-      await axios.delete(`${BASE_URL}/${endpoint}/${id}`, { headers });
+      await axios.delete(`${API_BASE}/${endpoint}/${id}`, { headers });
       await fetchTransactions();
       return true;
     } catch (err) {
@@ -306,7 +303,7 @@ const Layout = ({ onlongout, user }) => {
 
   return (
     <div className={styles.layout.root}>
-      <Navbar user={user} onlongout={onlongout} />
+      <Navbar user={user} onLogout={onLogout} />
       <Sidebar
         user={user}
         isCollapsed={sidebarCollapsed}
@@ -359,11 +356,10 @@ const Layout = ({ onlongout, user }) => {
                 <ArrowUp className={styles.statCards.icon("green")} />
               </div>
             </div>
+
             <p className={styles.statCards.cardFooter}>
-              <p className={styles.statCards.cardFooter}>
-                <span className="text-green-600 font-medium">12.5%</span> From
-                last month
-              </p>
+              <span className="text-green-600 font-medium">12.5%</span> From
+              last month
             </p>
           </div>
 
@@ -438,7 +434,7 @@ const Layout = ({ onlongout, user }) => {
             <div className={styles.cards.base}>
               <div className={styles.transactions.cardHeader}>
                 <h3 className={styles.transactions.cardTitle}>
-                  <Clock w-6 h-6 className="text-purple-500" />
+                  <Clock className="w-6 h-6 text-purple-500" />
                   Recent Transcations
                 </h3>
                 <button
