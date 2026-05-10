@@ -1,13 +1,10 @@
 # 💰 Track Expense – Full Stack Expense Tracker
 
 A full-stack Expense Tracker application that allows users to manage income and expenses with authentication, a dashboard, and persistent storage.
+
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Version](https://img.shields.io/badge/version-1.0.0-blue)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
-
-A full-stack Expense Tracker application with authentication, dashboard, and transaction management.
-
----
 
 ## 🌐 Live Demo
 
@@ -29,8 +26,6 @@ A full-stack Expense Tracker application with authentication, dashboard, and tra
 ### 📊 Dashboard
 
 ![Dashboard Screenshot](./frontend/public/screenshots/dashboard.png)
-
----
 
 ---
 
