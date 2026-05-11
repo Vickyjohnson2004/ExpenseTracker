@@ -11,7 +11,8 @@ import dashboardRouter from "./src/routes/dashboardRoute.js";
 
 const app = express();
 
-const port = Number(process.env.PORT) || 4000;
+// CONNECT DATABASE
+connectDB();
 
 // ALLOWED ORIGINS
 const allowedOrigins = [
@@ -25,14 +26,16 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // ALLOW REST TOOLS / POSTMAN / MOBILE APPS
-      if (!origin) return callback(null, true);
+      // ALLOW POSTMAN / MOBILE APPS
+      if (!origin) {
+        return callback(null, true);
+      }
 
       if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
+        return callback(null, true);
       }
+
+      return callback(new Error("Not allowed by CORS"));
     },
     credentials: true,
   }),
@@ -41,9 +44,6 @@ app.use(
 // MIDDLEWARES
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// DB
-connectDB();
 
 // ROUTES
 app.use("/api/user", userRouter);
@@ -55,11 +55,9 @@ app.use("/api/dashboard", dashboardRouter);
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: `Server running on port ${port}`,
+    message: "Backend is running successfully",
   });
 });
 
-// SERVER
-app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
-});
+// IMPORTANT FOR VERCEL
+export default app;
