@@ -19,7 +19,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
   "https://expense-tracker-three-beta-41.vercel.app",
-  "https://expense-tracker-lh5qzmttj-victor-johnsons-projects.vercel.app",
+  "https://expense-tracker-ld5u5bkbe-victor-johnsons-projects.vercel.app",
 ];
 
 // CORS
