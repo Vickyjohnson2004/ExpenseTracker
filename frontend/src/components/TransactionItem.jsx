@@ -17,31 +17,33 @@ const TransactionItem = ({
   amountClass = "font-bold truncate block text-right",
   iconClass = "p-3 rounded-xl flex-shrink-0",
 }) => {
-  const [errors, setErrors] = useState({ description: "", amount: "" });
+  const [errors, setErrors] = useState({
+    description: "",
+    amount: "",
+  });
 
   const classes = colorClasses[type];
   const sign = type === "income" ? "+" : "-";
 
+  // ---------------- VALIDATION ----------------
   const validate = () => {
     const nextErrors = { description: "", amount: "" };
-    const desc = String(editForm.description ?? "").trim();
-    const amtRaw = editForm.amount;
-    const amt =
-      amtRaw === "" || amtRaw === null || amtRaw === undefined
-        ? ""
-        : String(amtRaw).trim();
+
+    const desc = String(editForm?.description ?? "").trim();
+    const amt = editForm?.amount;
 
     if (!desc) {
       nextErrors.description = "Description is required.";
     }
 
-    if (amt === "") {
+    if (amt === "" || amt === null || amt === undefined) {
       nextErrors.amount = "Amount is required.";
-    } else if (Number(amt) <= 0) {
+    } else if (Number(amt) <= 0 || isNaN(Number(amt))) {
       nextErrors.amount = "Amount must be greater than 0.";
     }
 
     setErrors(nextErrors);
+
     return !nextErrors.description && !nextErrors.amount;
   };
 
@@ -50,25 +52,35 @@ const TransactionItem = ({
       setErrors({ description: "", amount: "" });
       onSave();
     }
-  }; // to save description and amount
+  };
+
+  // ---------------- SAFE DATE ----------------
+  const safeDate = transaction?.date ? new Date(transaction.date) : null;
+
+  const formattedDate =
+    safeDate && !isNaN(safeDate)
+      ? safeDate.toLocaleDateString()
+      : "Invalid date";
 
   return (
     <div className={transactionItemStyles.container(isEditing, classes)}>
+      {/* LEFT SIDE */}
       <div className={transactionItemStyles.mainContainer}>
         <div
           className={transactionItemStyles.iconContainer(iconClass, classes)}
         >
-          {categoryIcons[transaction.category] || (
+          {categoryIcons?.[transaction.category] || (
             <DollarSign className="w-5 h-5" />
           )}
         </div>
 
         <div className={transactionItemStyles.contentContainer}>
+          {/* DESCRIPTION */}
           {isEditing ? (
             <>
               <input
                 type="text"
-                value={editForm.description}
+                value={editForm?.description ?? ""}
                 onChange={(e) =>
                   setEditForm((prev) => ({
                     ...prev,
@@ -82,10 +94,7 @@ const TransactionItem = ({
               />
 
               {errors.description && (
-                <p
-                  className={transactionItemStyles.errorText}
-                  id={`desc-error-${transaction.id}`}
-                >
+                <p className={transactionItemStyles.errorText}>
                   {errors.description}
                 </p>
               )}
@@ -96,33 +105,37 @@ const TransactionItem = ({
             </p>
           )}
 
+          {/* META */}
           <p className={transactionItemStyles.details}>
-            {new Date(transaction.date).toLocalDateString()}{" "}
-            {transaction.category}
+            {formattedDate}{" "}
+            <span className="ml-2 capitalize">{transaction.category}</span>
           </p>
         </div>
       </div>
 
+      {/* RIGHT SIDE */}
       <div className={transactionItemStyles.actionsContainer}>
+        {/* AMOUNT */}
         <div className={transactionItemStyles.amountContainer}>
           {isEditing ? (
             <>
               <input
                 type="number"
-                value={editForm.amount}
+                value={editForm?.amount ?? ""}
                 onChange={(e) =>
-                  setEditForm((prev) => ({ ...prev, amount: e.target.value }))
+                  setEditForm((prev) => ({
+                    ...prev,
+                    amount: e.target.value,
+                  }))
                 }
                 className={transactionItemStyles.amountInput(
                   !!errors.amount,
                   classes,
                 )}
               />
+
               {errors.amount && (
-                <p
-                  id={`amt-error-${transaction.id}`}
-                  className={transactionItemStyles.errorText}
-                >
+                <p className={transactionItemStyles.errorText}>
                   {errors.amount}
                 </p>
               )}
@@ -132,7 +145,7 @@ const TransactionItem = ({
               className={transactionItemStyles.amountText(amountClass, classes)}
             >
               {sign}$
-              {Number(transaction.amount).toLocaleString("en-US", {
+              {Number(transaction.amount || 0).toLocaleString("en-US", {
                 maximumFractionDigits: 2,
                 minimumFractionDigits: 2,
               })}
@@ -140,13 +153,13 @@ const TransactionItem = ({
           )}
         </div>
 
+        {/* ACTION BUTTONS */}
         <div className={transactionItemStyles.buttonsContainer}>
           {isEditing ? (
             <>
               <button
                 onClick={handleSaveClick}
                 className={transactionItemStyles.saveButton(classes)}
-                title="Save"
               >
                 <Save size={16} />
               </button>
@@ -157,7 +170,6 @@ const TransactionItem = ({
                   onCancel();
                 }}
                 className={transactionItemStyles.cancelButton}
-                title="Cancel"
               >
                 <X size={16} />
               </button>
@@ -173,11 +185,11 @@ const TransactionItem = ({
                     date: transaction.date ?? "",
                     type: transaction.type ?? "expense",
                   });
+
                   setErrors({ description: "", amount: "" });
                   setEditingId(transaction.id);
                 }}
                 className={transactionItemStyles.editButton(classes)}
-                title="Edit"
               >
                 <Edit size={16} />
               </button>
@@ -185,7 +197,6 @@ const TransactionItem = ({
               <button
                 onClick={() => onDelete(transaction.id)}
                 className={transactionItemStyles.deleteButton(classes)}
-                title="Delete"
               >
                 <Trash2 size={16} />
               </button>
