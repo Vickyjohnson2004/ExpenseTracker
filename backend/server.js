@@ -59,12 +59,5 @@ app.get("/", (req, res) => {
   });
 });
 
-// LOCAL DEVELOPMENT SERVER
-const PORT = process.env.PORT || 4000;
-
-app.listen(PORT, () => {
-  console.log(`SERVER RUNNING ON PORT ${PORT}`);
-});
-
 // IMPORTANT FOR VERCEL
 export default app;
