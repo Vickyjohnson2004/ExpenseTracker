@@ -17,46 +17,51 @@ const app = express();
 connectDB();
 
 /* =========================
+   ENVIRONMENT
+========================= */
+const isProduction = process.env.NODE_ENV === "production";
+
+/* =========================
    ALLOWED ORIGINS
 ========================= */
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
   "https://expense-tracker-three-beta-41.vercel.app",
-  "https://expense-tracker-ld5u5bkbe-victor-johnsons-projects.vercel.app",
 ];
 
 /* =========================
-   CORS CONFIG (FIXED)
+   CORS OPTIONS (PRODUCTION SAFE)
 ========================= */
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      // Allow Postman / server-to-server requests
-      if (!origin) return callback(null, true);
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow mobile apps, Postman, server-to-server
+    if (!origin) return callback(null, true);
 
-      const isAllowed = allowedOrigins.some((allowed) =>
-        origin.startsWith(allowed),
-      );
+    // Strict match (NOT startsWith — safer)
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
 
-      if (isAllowed) {
-        return callback(null, true);
-      }
+    console.error("❌ CORS blocked origin:", origin);
+    return callback(new Error("Not allowed by CORS"));
+  },
 
-      return callback(null, false);
-    },
-    credentials: true,
-  }),
-);
+  credentials: true,
 
-/* =========================
-   IMPORTANT: HANDLE PREFLIGHT
-========================= */
-app.options("*", cors());
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
 /* =========================
    MIDDLEWARES
 ========================= */
+app.use(cors(corsOptions));
+
+// Handle preflight requests properly
+app.options("*", cors(corsOptions));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -74,7 +79,20 @@ app.use("/api/dashboard", dashboardRouter);
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Backend is running successfully",
+    message: "Backend is running successfully 🚀",
+    environment: isProduction ? "production" : "development",
+  });
+});
+
+/* =========================
+   GLOBAL ERROR HANDLER (IMPORTANT)
+========================= */
+app.use((err, req, res, next) => {
+  console.error("🔥 Server Error:", err.message);
+
+  res.status(500).json({
+    success: false,
+    message: err.message || "Internal Server Error",
   });
 });
 
