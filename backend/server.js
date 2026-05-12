@@ -11,92 +11,53 @@ import dashboardRouter from "./src/routes/dashboardRoute.js";
 
 const app = express();
 
-/* =========================
-   DATABASE CONNECTION
-========================= */
+// CONNECT DATABASE
 connectDB();
 
-/* =========================
-   ENVIRONMENT
-========================= */
-const isProduction = process.env.NODE_ENV === "production";
-
-/* =========================
-   ALLOWED ORIGINS
-========================= */
+// ALLOWED ORIGINS
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
   "https://expense-tracker-three-beta-41.vercel.app",
+  "https://expense-tracker-lh5qzmttj-victor-johnsons-projects.vercel.app",
 ];
 
-/* =========================
-   CORS OPTIONS (PRODUCTION SAFE)
-========================= */
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow mobile apps, Postman, server-to-server
-    if (!origin) return callback(null, true);
+// CORS
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      // ALLOW POSTMAN / MOBILE APPS
+      if (!origin) {
+        return callback(null, true);
+      }
 
-    // Strict match (NOT startsWith — safer)
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
 
-    console.error("❌ CORS blocked origin:", origin);
-    return callback(new Error("Not allowed by CORS"));
-  },
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  }),
+);
 
-  credentials: true,
-
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-
-  allowedHeaders: ["Content-Type", "Authorization"],
-};
-
-/* =========================
-   MIDDLEWARES
-========================= */
-app.use(cors(corsOptions));
-
-// Handle preflight requests properly
-app.options("*", cors(corsOptions));
-
+// MIDDLEWARES
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-/* =========================
-   ROUTES
-========================= */
+// ROUTES
 app.use("/api/user", userRouter);
 app.use("/api/income", incomeRouter);
 app.use("/api/expense", expenseRouter);
 app.use("/api/dashboard", dashboardRouter);
 
-/* =========================
-   HEALTH CHECK
-========================= */
+// HEALTH CHECK
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
-    message: "Backend is running successfully 🚀",
-    environment: isProduction ? "production" : "development",
+    message: "Backend is running successfully",
   });
 });
 
-/* =========================
-   GLOBAL ERROR HANDLER (IMPORTANT)
-========================= */
-app.use((err, req, res, next) => {
-  console.error("🔥 Server Error:", err.message);
-
-  res.status(500).json({
-    success: false,
-    message: err.message || "Internal Server Error",
-  });
-});
-
-/* =========================
-   VERCEL EXPORT
-========================= */
+// IMPORTANT FOR VERCEL
 export default app;
