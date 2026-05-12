@@ -6,56 +6,60 @@ import getDateRange from "../utils/dateFilter.js";
 export async function addIcome(req, res) {
   const userId = req.user._id;
   const { description, amount, category, date } = req.body;
+
   try {
     if (!description || !amount || !category || !date) {
       return res.status(400).json({
         success: false,
-        message: "All field are required.",
+        message: "All fields are required.",
       });
     }
 
-    const newIcome = new incomeModel({
+    const newIcome = await incomeModel.create({
       userId,
       description,
       amount,
       category,
       date: new Date(date),
     });
-    await newIcome.save();
 
-    res.json({
+    return res.json({
       success: true,
-      message: "Icome added successfully!",
+      message: "Income added successfully!",
+      data: newIcome,
     });
   } catch (error) {
-    console.log(error || error.message);
-
-    res.status(500).json({
+    console.log(error);
+    return res.status(500).json({
       success: false,
       message: "Server Error",
     });
   }
 }
 
-// to get income (all)
+// Get all income
 export async function getAllIncome(req, res) {
   const userId = req.user._id;
-  try {
-    const income = (await incomeModel.find({ userId })).sort({ date: -1 });
-    res.json(income);
-  } catch (error) {
-    console.log(error || error.message);
 
-    res.status(500).json({
+  try {
+    const income = await incomeModel.find({ userId }).sort({ date: -1 });
+
+    return res.json({
+      success: true,
+      data: income,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
       success: false,
       message: "Server Error",
     });
   }
 }
 
-// update an income
+// Update income
 export async function updateIncome(req, res) {
-  const { id } = req.param;
+  const { id } = req.params;
   const userId = req.user._id;
   const { description, amount } = req.body;
 
@@ -67,33 +71,33 @@ export async function updateIncome(req, res) {
     );
 
     if (!updatedIncome) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         message: "Income not found",
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
-      message: "Icome Updated successfully!",
+      message: "Income updated successfully!",
       data: updatedIncome,
     });
   } catch (error) {
-    console.log(error || error.message);
-
-    res.status(500).json({
+    console.log(error);
+    return res.status(500).json({
       success: false,
       message: "Server Error",
     });
   }
 }
 
-// to delete an income
+// Delete income
 export async function deleteIncome(req, res) {
   try {
-    const income = await incomeModel.findByIdAndDelete({ _id: req.params.id });
+    const income = await incomeModel.findByIdAndDelete(req.params.id);
+
     if (!income) {
-      res.status(404).json({
+      return res.status(404).json({
         success: false,
         message: "Income not found",
       });
@@ -104,20 +108,21 @@ export async function deleteIncome(req, res) {
       message: "Income deleted successfully!",
     });
   } catch (error) {
-    console.log(error || error.message);
-
-    res.status(500).json({
+    console.log(error);
+    return res.status(500).json({
       success: false,
       message: "Server Error",
     });
   }
 }
 
-// to download the data in an excel sheet
-export async function downloadIncomeExcel(params) {
+// Excel export
+export async function downloadIncomeExcel(req, res) {
   const userId = req.user._id;
+
   try {
-    const income = (await incomeModel.find({ userId })).toSorted({ date: -1 });
+    const income = await incomeModel.find({ userId }).sort({ date: -1 });
+
     const plainData = income.map((inc) => ({
       Description: inc.description,
       Amount: inc.amount,
@@ -127,20 +132,24 @@ export async function downloadIncomeExcel(params) {
 
     const worksheet = XLSX.utils.json_to_sheet(plainData);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "incomeModel");
-    XLSX.writefile(workbook, "income_details.xlsx");
-    res.download("income_details.xlsx");
-  } catch (error) {
-    console.log(error || error.message);
 
-    res.status(500).json({
+    XLSX.utils.book_append_sheet(workbook, worksheet, "income");
+
+    const filePath = "income_details.xlsx";
+
+    XLSX.writeFile(workbook, filePath);
+
+    return res.download(filePath);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
       success: false,
       message: "Server Error",
     });
   }
 }
 
-// to get income overview
+// Overview
 export async function getIcomeOverview(req, res) {
   try {
     const userId = req.user._id;
@@ -154,25 +163,22 @@ export async function getIcomeOverview(req, res) {
       })
       .sort({ date: -1 });
 
-    const totalIncome = incomes.reduce((acc, cur) => acc + cur.amount, 0);
-    const averageIncome = incomes.length > 0 ? totalIncome / incomes.length : 0;
-    const numberOfTransactions = incomes.length;
-    const recentTransactions = incomes.slice(0, 9);
+    const totalIncome = incomes.reduce((a, b) => a + b.amount, 0);
+    const averageIncome = incomes.length ? totalIncome / incomes.length : 0;
 
     return res.json({
       success: true,
       data: {
         totalIncome,
         averageIncome,
-        numberOfTransactions,
-        recentTransactions,
+        numberOfTransactions: incomes.length,
+        recentTransactions: incomes.slice(0, 9),
         range,
       },
     });
   } catch (error) {
-    console.log(error || error.message);
-
-    res.status(500).json({
+    console.log(error);
+    return res.status(500).json({
       success: false,
       message: "Server Error",
     });
