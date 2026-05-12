@@ -11,10 +11,14 @@ import dashboardRouter from "./src/routes/dashboardRoute.js";
 
 const app = express();
 
-// CONNECT DATABASE
+/* =========================
+   DATABASE CONNECTION
+========================= */
 connectDB();
 
-// ALLOWED ORIGINS
+/* =========================
+   ALLOWED ORIGINS
+========================= */
 const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
@@ -22,36 +26,51 @@ const allowedOrigins = [
   "https://expense-tracker-ld5u5bkbe-victor-johnsons-projects.vercel.app",
 ];
 
-// CORS
+/* =========================
+   CORS CONFIG (FIXED)
+========================= */
 app.use(
   cors({
     origin: function (origin, callback) {
-      // ALLOW POSTMAN / MOBILE APPS
-      if (!origin) {
+      // Allow Postman / server-to-server requests
+      if (!origin) return callback(null, true);
+
+      const isAllowed = allowedOrigins.some((allowed) =>
+        origin.startsWith(allowed),
+      );
+
+      if (isAllowed) {
         return callback(null, true);
       }
 
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("Not allowed by CORS"));
+      return callback(null, false);
     },
     credentials: true,
   }),
 );
 
-// MIDDLEWARES
+/* =========================
+   IMPORTANT: HANDLE PREFLIGHT
+========================= */
+app.options("*", cors());
+
+/* =========================
+   MIDDLEWARES
+========================= */
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ROUTES
+/* =========================
+   ROUTES
+========================= */
 app.use("/api/user", userRouter);
 app.use("/api/income", incomeRouter);
 app.use("/api/expense", expenseRouter);
 app.use("/api/dashboard", dashboardRouter);
 
-// HEALTH CHECK
+/* =========================
+   HEALTH CHECK
+========================= */
 app.get("/", (req, res) => {
   res.status(200).json({
     success: true,
@@ -59,5 +78,7 @@ app.get("/", (req, res) => {
   });
 });
 
-// IMPORTANT FOR VERCEL
+/* =========================
+   VERCEL EXPORT
+========================= */
 export default app;
