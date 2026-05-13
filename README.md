@@ -8,26 +8,8 @@ A full-stack Expense Tracker application that allows users to manage income and 
 
 ## 🌐 Live Demo
 
-🚀 **Frontend:** https://your-frontend-url.vercel.app
-🔧 **Backend API:** https://your-backend-url.onrender.com
-
-> ⚠️ Replace these with your actual deployed links
-
----
-
-## 📸 Screenshots
-
-### 🔐 Login Page
-
-![Login Screenshot](./frontend/public/screenshots/login.png)
-
----
-
-### 📊 Dashboard
-
-![Dashboard Screenshot](./frontend/public/screenshots/dashboard.png)
-
----
+🚀 **Frontend:** https://expense-tracker-three-beta-41.vercel.app/
+🔧 **Backend API:** https://expense-tracker-hhq3.vercel.app/
 
 ## 🚀 Overview
 
@@ -136,7 +118,7 @@ Render dashboard
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/track-expense.git
+git clone https://github.com/Vickyjohnson2004/ExpenseTracker.git
 cd track-expense
 ```
 
