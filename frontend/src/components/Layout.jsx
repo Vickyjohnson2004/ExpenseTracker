@@ -12,7 +12,6 @@ import {
   DollarSign,
   Gift,
   Home,
-  Info,
   PieChart,
   PiggyBank,
   RefreshCw,
@@ -390,7 +389,7 @@ const Layout = ({ onLogout, user }) => {
                     break-words
                   "
                 >
-                  ${stats.allTimeSavings.toLocaleString()}
+                  ₦{stats.allTimeSavings.toLocaleString()}
                 </h2>
               </div>
 
@@ -436,7 +435,7 @@ const Layout = ({ onLogout, user }) => {
                     mt-2
                   "
                 >
-                  ${stats.allTimeIncome.toLocaleString()}
+                  ₦{stats.allTimeIncome.toLocaleString()}
                 </h2>
               </div>
 
@@ -482,7 +481,7 @@ const Layout = ({ onLogout, user }) => {
                     mt-2
                   "
                 >
-                  ${stats.allTimeExpenses.toLocaleString()}
+                  ₦{stats.allTimeExpenses.toLocaleString()}
                 </h2>
               </div>
 
@@ -701,8 +700,8 @@ const Layout = ({ onLogout, user }) => {
                             font-medium
                             text-gray-800
                             truncate
-                            max-w-[150px]
-                            sm:max-w-[220px]
+                            max-w-37.5
+                            sm:max-w-55
                           "
                         >
                           {t.description}
@@ -731,7 +730,7 @@ const Layout = ({ onLogout, user }) => {
                         }
                       `}
                     >
-                      {t.type === "income" ? "+" : "-"}${Number(t.amount)}
+                      {t.type === "income" ? "+" : "-"}₦{Number(t.amount)}
                     </span>
                   </div>
                 ))}
@@ -847,7 +846,7 @@ const Layout = ({ onLogout, user }) => {
                           text-gray-800
                         "
                     >
-                      ${amount}
+                      ₦{amount}
                     </span>
                   </div>
                 ))}

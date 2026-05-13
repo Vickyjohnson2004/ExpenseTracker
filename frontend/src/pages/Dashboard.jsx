@@ -443,14 +443,14 @@ const Dashboard = () => {
             </div>
           }
           label="Total Balance"
-          value={`$${Math.round(displayIncome - displayExpenses).toLocaleString()}`}
+          value={`₦${Math.round(displayIncome - displayExpenses).toLocaleString()}`}
           additionalContent={
             <div className="flex iems-center gap-3 mt-2 text-sm">
               <span className={dashboardStyles.balanceBadge}>
-                +${Math.round(displayIncome).toLocaleString()}
+                +₦{Math.round(displayIncome).toLocaleString()}
               </span>
               <span className={dashboardStyles.expenseBadge}>
-                +${Math.round(displayExpenses).toLocaleString()}
+                +₦{Math.round(displayExpenses).toLocaleString()}
               </span>
             </div>
           }
@@ -463,7 +463,7 @@ const Dashboard = () => {
             </div>
           }
           label={`${timeFrameRange.label} Expenses`}
-          value={`$${Math.round(displayExpenses).toLocaleString()}`}
+          value={`₦${Math.round(displayExpenses).toLocaleString()}`}
           additionalContent={
             <div
               className={`mt-2 text-xs flex item-center gap-1 ${expenseChange >= 0 ? trendStyles.positive : trendStyles.negative}`}
@@ -489,7 +489,7 @@ const Dashboard = () => {
             </div>
           }
           label={`${timeFrameRange.label} Savings`}
-          value={`$${Math.round(displaySavings).toLocaleString()}`}
+          value={`₦${Math.round(displaySavings).toLocaleString()}`}
           additionalContent={
             <div className="mt-2 text-xs text-cyan-600 flex items-center gap-2">
               <div className="flex items-center gap-2">

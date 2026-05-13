@@ -538,7 +538,7 @@ const IncomePage = () => {
             </div>
           }
           label="Total Income"
-          value={`$${Number(totalIncome || 0).toLocaleString()}`}
+          value={`₦${Number(totalIncome || 0).toLocaleString()}`}
           additionalContent={
             <div className="mt-2 text-xs text-gray-500 flex items-center">
               <Calendar className="w-3 h-3 mr-1" /> {timeFrameRange.label}
@@ -555,7 +555,7 @@ const IncomePage = () => {
             </div>
           }
           label="Average Income"
-          value={`$${Number(averageIncome || 0).toLocaleString()}`}
+          value={`₦${Number(averageIncome || 0).toLocaleString()}`}
           additionalContent={
             <div className="mt-2 text-xs text-gray-500 flex items-center">
               <Calendar className="w-3 h-3 mr-1" /> {transactionsCount}{" "}
